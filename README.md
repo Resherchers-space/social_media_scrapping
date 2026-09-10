@@ -1,183 +1,51 @@
-# social_media_scrapping
-A Python project to scrape YouTube comments using multiple methods and compare their performance. The project extracts comments, replies, usernames, saves the data into CSV for further data analysis.
+# YouTube Comments Scraper — Political News Videos
 
-Project Objective
+This notebook explores different ways to **extract comments from YouTube videos** (focused on political news videos), and compares how fast/reliable each method is. It's part of a college data-extraction project.
 
-The goal of this project is to:
+**Test video used:** [`https://www.youtube.com/watch?v=yCX5rj9Tmxs`](https://www.youtube.com/watch?v=yCX5rj9Tmxs) — this is the video most of the methods (yt-dlp, Playwright, youtube-comment-downloader, and the later API runs) were actually tested on. It ended up having **10,000+ comments**, which is why it's a good stress-test for comparing speed.
 
-Extract YouTube comments automatically
+## What this notebook actually does
 
-Compare different scraping methods
+It is not one single script — it's a collection of **4 different approaches** to get YouTube comments, tried one after another so they can be compared:
 
-Save structured comment data into CSV
+| # | Method | How it works | Needs |
+|---|--------|---------------|-------|
+| 1 | **YouTube Data API v3** | Uses Google's official API to fetch comments + replies for a video ID | A free YouTube API key |
+| 2 | **yt-dlp** | A video-download tool that can also pull comments without using the official API | Just the library, no key |
+| 3 | **Playwright (browser automation)** | Opens the YouTube page in a real (headless) browser and scrolls down, reading comments straight from the page | Playwright + Chromium |
+| 4 | **youtube-comment-downloader** | A ready-made Python package built specifically for scraping comments | Just the library, no key |
 
-Prepare data for Data Analysis / Sentiment Analysis projects
+For each method, the notebook:
+1. Takes a YouTube video ID or URL
+2. Fetches all top-level comments (and replies, where supported)
+3. Saves everything into a `.csv` file (author, comment text, likes, date, etc.)
 
-Methods Used
+## Speed comparison (from the notebook's own test run)
 
-Method
+| Method | Time taken |
+|---|---|
+| Official API | 44.6 sec |
+| yt-dlp | 131.4 sec |
+| youtube-comment-downloader | 226 sec |
 
-	
+👉 **The official API was the fastest** of the three that were timed. (Playwright wasn't included in this timing test.)
 
-Description
+## Problems faced with each method
 
+- **Official API** — Worked cleanly and was the fastest overall. Only real limitation: it runs on a daily API quota, so scraping many videos (especially ones with 10,000+ comments like the test video) can burn through quota fast.
+- **yt-dlp** — Installing it triggered a **dependency conflict warning**: Colab needs `pandas==2.2.3`, but installing yt-dlp pulled in `pandas 3.0.5`, which pip flagged as incompatible. It still worked for scraping, but this kind of version clash can silently break other cells in the same notebook that rely on pandas.
+- **youtube-comment-downloader** — No errors, but it was clearly the **slowest** (226 sec vs. 44.6 sec for the API and 131 sec for yt-dlp) despite fetching the most comments (10,843) of the three that completed.
 
+<img width="660" height="565" alt="image" src="https://github.com/user-attachments/assets/c8678413-ca80-45b1-9826-108c88ce7912" />
 
+## How to run it
 
-YouTube Data API v3
+1. Open the notebook in Google Colab or Jupyter.
+2. Pick whichever method's section you want to try (they're separated by markdown headings like "API", "yt-dlp", etc.).
+3. Replace `VIDEO_ID` or `VIDEO_URL` with the video you want to scrape.
+4. Run the cells in that section top to bottom.
+5. Find the output as a `.csv` file in the same folder.
 
-	
+## ⚠️ Important note
 
-Official Google API for extracting comments
-
-
-
-
-yt-dlp
-
-	
-
-Fast extraction without API quota issues
-
-
-
-
-Playwright
-
-	
-
-Browser automation based scraping
-
-
-
-
-youtube-comment-downloader
-
-	
-
-Scrapes public comments directly
-
-Tech Stack
-
-Python
-
-Pandas
-
-Google API Client
-
-yt-dlp
-
-Playwright
-
-youtube-comment-downloader
-
-Output
-
-The extracted CSV contains fields such as:
-
-Author Name
-
-Comment
-
-Likes
-
-Reply Count
-
-Published Date
-
-How to Run
-
-Install dependencies
-
-pip install pandas google-api-python-client yt-dlp youtube-comment-downloader playwright
-playwright install chromium
-
-Add your YouTube API Key (for API method)
-
-API_KEY = "YOUR_API_KEY"
-VIDEO_ID = "VIDEO_ID"
-
-Run the notebook and the comments will be exported as:
-
-comments.csv
-comments_ytdlp.csv
-Use Cases
-
-Sentiment Analysis
-
-Political Opinion Mining
-
-Social Media Analytics
-
-NLP Projects
-
-Data Visualization
-
-Findings
-Performance Comparison
-
-Method
-
-	
-
-Comments Extracted
-
-	
-
-Time
-
-
-
-
-Official YouTube API
-
-	
-
-10,843
-
-	
-
-44.6 sec
-
-
-
-
-yt-dlp
-
-	
-
-10,843
-
-	
-
-131.38 sec
-
-
-
-
-youtube-comment-downloader
-
-	
-
-10,843
-
-	
-
-226 sec
-
-Key Findings
-
-The Official YouTube API was the fastest method, completing extraction in 44.6 seconds.
-
-yt-dlp successfully extracted all 10,843 comments without relying on API quotas.
-
-youtube-comment-downloader also extracted the complete dataset but was the slowest.
-
-All successful methods produced the same total number of comments, making them suitable for downstream analysis.
-
-CSV export time was negligible (~0.08 sec) compared to scraping time.
-
-
-Conclusion
-
-For projects requiring speed and reliability, the YouTube Data API v3 is the best choice. If API quota or authentication is a limitation, yt-dlp provides a strong alternative while still extracting the complete comment dataset.
+The notebook currently has a **YouTube API key hardcoded directly in the code** (in the cells that use the Official API method). Before sharing or uploading this notebook anywhere public (like GitHub), that key should be removed and loaded from an environment variable or a config file instead — otherwise anyone with the notebook can use (and exhaust) your API quota.
